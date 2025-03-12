@@ -5,9 +5,15 @@
    github.com/Add1Padd1/Vefforritun_2_hv1
 
    nota þessar command línur:
-   npm install
-   yarn add @prisma/client
-   yarn dev
+   ```
+npm install
+yarn add @prisma/client
+yarn dev
+```
+
+```
+open http://localhost:3000
+```
 
    .Env á að vera í rót verkefnis og er .env gefið upp í canvas.
    DATABASE_URL=postgresql://...
@@ -31,12 +37,4 @@ TODO
     Arnaldur Ólafsson - aro42@hi.is - github.com/Add1Padd1
     Aron Bjartur Hilmarsson - abh41@hi.is - github.com/aronbjartur
 
-```
-npm install
-yarn add @prisma/client
-yarn dev
-```
 
-```
-open http://localhost:3000
-```
