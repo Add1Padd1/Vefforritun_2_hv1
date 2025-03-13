@@ -47,6 +47,7 @@ async function findUserByUsername(username: string): Promise<User | null> {
   return null;
 }
 
+
 // jwt verify 
 
 // þetta virkar ekki 
