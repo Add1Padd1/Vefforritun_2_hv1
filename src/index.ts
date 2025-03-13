@@ -35,7 +35,6 @@ if (process.env.CLOUDINARY_URL) {
     api_secret: cloudinaryConfig.password,
   });
 }
-
 const app = new Hono();
 
 app.get('/', (c) => {
@@ -98,19 +97,6 @@ app.post('/upload', async (c) => {
       resolve(c.json({ url: result?.secure_url }));
     });
     uploadStream.end(buffer);
-  });
-});
-
-
-
-app.get('/transactions', async (c) => {
-  const limit = Number(c.req.query('limit') || 10);
-  const offset = Number(c.req.query('offset') || 0);
-  const transactions = await getTransactions(); 
-  const paginated = transactions.slice(offset, offset + limit);
-  return c.json({
-    data: paginated,
-    pagination: { limit, offset, total: transactions.length },
   });
 });
 
@@ -182,7 +168,8 @@ app.get('/categories/:slug', async (c) => {
 });
 
 app.get('/transactions', async (c) => {
-  const transactions = await getTransactions();
+  const page = c.req.query('page') ?? '0';
+  const transactions = await getTransactions(parseInt(page));
   return c.json(transactions);
 });
 
@@ -243,7 +230,7 @@ app.patch('/transactions/:slug', async (c) => {
   const slug = c.req.param('slug');
   const transaction = await getTransaction(slug);
   if (!transaction) {
-    return c.json({ error: 'Transaction not found' }, 404);
+    return c.json({ error: 'Category not found' }, 404);
   }
   let transactionToUpdate: unknown;
   try {
@@ -264,12 +251,13 @@ app.patch('/transactions/:slug', async (c) => {
   const updated = await updateTransaction(validTransaction.data, transaction);
   console.log('updated :>> ', updated);
   return c.json(updated, 200);
-});
 
+  /* return c.json({ error: 'Internal server error' }, 500); */
+});
 serve(
   {
     fetch: app.fetch,
-    port: Number(process.env.PORT || 3000),
+    port: 3000,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
