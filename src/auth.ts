@@ -47,22 +47,43 @@ async function findUserByUsername(username: string): Promise<User | null> {
   return null;
 }
 
-// jwt verify
-export async function authMiddleware(c: any, next: () => Promise<void>): Promise<Response> {
-  const authHeader = c.req.headers.get('Authorization');
-  if (!authHeader) {
-    return c.json({ error: 'Authorization header missing' }, 401);
+// jwt verify 
+
+// þetta virkar ekki 
+
+export async function authMiddleware(c: any, next: () => Promise<Response>): Promise<Response> {
+    let authHeader: string | undefined = undefined;
+    
+    // First, try if c.req.headers exists and has a .get() method (standard Headers instance)
+    if (c.req.headers && typeof c.req.headers.get === 'function') {
+      authHeader = c.req.headers.get('Authorization') || c.req.headers.get('authorization');
+    }
+    
+    // Fallback: try to get from raw headers if available
+    if (!authHeader && c.req.raw && c.req.raw.headers) {
+      // Raw headers may be a plain object.
+      // In Node, headers are typically lower-case.
+      authHeader = c.req.raw.headers.authorization;
+      // If raw headers exist but are not a string, try to coerce them.
+      if (Array.isArray(authHeader)) {
+        authHeader = authHeader[0];
+      }
+    }
+    
+    console.log('Authorization header from request:', authHeader);
+    
+    if (!authHeader) {
+      return c.json({ error: 'Authorization header missing' }, 401);
+    }
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as { id: number; username: string; admin: boolean };
+      c.set('user', decoded);
+      return next();
+    } catch (error) {
+      return c.json({ error: 'Invalid or expired token' }, 401);
+    }
   }
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, jwtSecret) as AuthState['user'];
-    c.set('user', decoded);
-    await next();
-    return c.res;
-  } catch (error) {
-    return c.json({ error: 'Invalid or expired token' }, 401);
-  }
-}
 
 // admin middleware
 export async function requireAdmin(c: any, next: () => Promise<void>): Promise<Response> {
