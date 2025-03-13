@@ -87,15 +87,17 @@ app.post('/upload', async (c) => {
   }
   const arrayBuffer = await (file as Blob).arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
-  // Upload the file to Cloudinary
+  // Use unsigned upload options.
   return new Promise<Response>((resolve) => {
-    const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
-      if (error) {
-        return resolve(c.json({ error: error.message }, 500));
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { upload_preset: 'luz8lu6b', unsigned: true },
+      (error, result) => {
+        if (error) {
+          return resolve(c.json({ error: error.message }, 500));
+        }
+        resolve(c.json({ url: result?.secure_url }));
       }
-      // On success, return the secure URL.
-      resolve(c.json({ url: result?.secure_url }));
-    });
+    );
     uploadStream.end(buffer);
   });
 });
