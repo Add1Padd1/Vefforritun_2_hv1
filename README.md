@@ -48,4 +48,3 @@ TODO
     Arnaldur Ólafsson - aro42@hi.is - github.com/Add1Padd1
     Aron Bjartur Hilmarsson - abh41@hi.is - github.com/aronbjartur
 
-

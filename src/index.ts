@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import dotenv from 'dotenv';
 
 import {
   createTransaction,
@@ -20,6 +21,9 @@ import {
   getUsers,
   getUser,
 } from './categories.db.js';
+import auth from './auth.js';
+
+dotenv.config();
 
 const app = new Hono();
 
@@ -59,6 +63,19 @@ app.get('/', (c) => {
     },
   };
   return c.json(data);
+});
+
+// tenging við auth
+app.route('/auth', auth);
+app.get('/transactions', async (c) => {
+  const limit = Number(c.req.query('limit') || 10);
+  const offset = Number(c.req.query('offset') || 0);
+  const transactions = await getTransactions(); 
+  const paginated = transactions.slice(offset, offset + limit);
+  return c.json({
+    data: paginated,
+    pagination: { limit, offset, total: transactions.length },
+  });
 });
 
 app.get('/users', async (c) => {
@@ -211,13 +228,12 @@ app.patch('/transactions/:slug', async (c) => {
   const updated = await updateTransaction(validTransaction.data, transaction);
   console.log('updated :>> ', updated);
   return c.json(updated, 200);
-
-  /* return c.json({ error: 'Internal server error' }, 500); */
 });
+
 serve(
   {
     fetch: app.fetch,
-    port: 3000,
+    port: Number(process.env.PORT || 3000),
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
