@@ -7,13 +7,17 @@
    nota þessar command línur:
    ```
 npm install
+npx prisma db pull
 yarn add @prisma/client
-yarn dev
+npx prisma generate
+yarn build
+yarn start
 ```
 
 ```
 open http://localhost:3000
 ```
+Ef eitthvað er að klikka í verkefninu þá borgar sig að eyða node_modules og package-lock.json files og endurtaka command línurnar fyrir ofan
 
    .Env á að vera í rót verkefnis og er .env gefið upp í canvas.
    DATABASE_URL=postgresql://...

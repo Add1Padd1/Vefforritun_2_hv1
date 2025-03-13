@@ -47,7 +47,11 @@ async function findUserByUsername(username: string): Promise<User | null> {
   return null;
 }
 
-// jwt verify
+
+// jwt verify 
+
+// þetta virkar ekki 
+
 export async function authMiddleware(c: any, next: () => Promise<Response>): Promise<Response> {
     let authHeader: string | undefined = undefined;
     
