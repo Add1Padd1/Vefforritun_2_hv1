@@ -23,7 +23,15 @@ open http://localhost:3000
     BCRYPT_ROUNDS=10
     PORT=3000
 
+Til að gera GET/ aðgerðir á ákveðin rows í sérhverju table þá nægir að gera GET http://localhost:3000/{nafn á table}/{nafn á table í eintölu}_{id}. 
+Ef ég vil fá row með id 1 úr table accounts þá myndi ég t.d. gera GET "http://localhost:3000/accounts/account_1". Þetta gildir fyrir allar töflur í db-inu
 
+Það er hægt að gera GET aðgerðir fyrir allar töflur og öll rows í hverri töflu.
+
+Eina taflan þar sem hægt er að gera allar CRUD aðgerðir á er transactions taflan, þar er hægt auk GET aðgerðanna að: 
+	DELETE-a flokki byggt á slug í url
+	POST-a row í töflunni þar sem þarf að fylla í öll columns nema id (sem auto generate-ar)
+ 	PATCH-a row í töflunni þar sem þarf að fylla í öll columns nema id (sem auto generate-ar)
 
 
 ## Test gögn
