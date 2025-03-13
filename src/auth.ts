@@ -162,32 +162,36 @@ auth.post('/images/upload', authMiddleware, async (c) => {
   }
   
   // MIME ----- only allow jpg and png
-  const allowedMimeTypes = ['image/jpeg', 'image/png'];
-  const fileType = (file as File).type;
-  if (!allowedMimeTypes.includes(fileType)) {
-    return c.json({ error: 'Only JPG and PNG images are allowed' }, 400);
-  }
+const allowedMimeTypes = ['image/jpeg', 'image/png'];
+const fileType = (file as File).type;
+if (!allowedMimeTypes.includes(fileType)) {
+  return c.json({ error: 'Only JPG and PNG images are allowed' }, 400);
+}
   
 
   const arrayBuffer = await (file as Blob).arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   
-  // Upload the file to Cloudinary
-  let uploadResult;
-  try {
-    uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
+  
+    // Upload the file to Cloudinary
+let uploadResult;
+try {
+  uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { upload_preset: 'luz8lu6b', unsigned: true },
+      (error, result) => {
         if (error) {
           reject(error);
         } else if (result) {
           resolve(result);
         }
-      });
-      uploadStream.end(buffer);
-    });
-  } catch (error) {
-    return c.json({ error: (error as Error).message }, 500);
-  }
+      }
+    );
+    uploadStream.end(buffer);
+  });
+} catch (error) {
+  return c.json({ error: (error as Error).message }, 500);
+}
   
   // Save the uploaded image info in the database, linked to the authenticated user
   try {
