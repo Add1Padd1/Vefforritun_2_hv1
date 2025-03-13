@@ -22,7 +22,7 @@ import {
   getUsers,
   getUser,
 } from './categories.db.js';
-import auth from './auth.js';
+import auth, { authMiddleware } from './auth.js';
 
 dotenv.config();
 
@@ -100,6 +100,42 @@ app.post('/upload', async (c) => {
   });
 });
 
+// meira auth
+
+// Only authenticated users can see their own accounts; admin sees all.
+app.get('/accounts', authMiddleware, async (c) => {
+  const userData = c.get('user') as { id: number; username: string; admin: boolean };
+  if (!userData) {
+    return c.json({ error: 'User not authenticated' }, 401);
+  }
+  let accounts;
+  if (userData.admin) {
+    accounts = await getAccounts();
+  } else {
+    accounts = (await getAccounts()).filter((acc) => acc.user_id === userData.id);
+  }
+  return c.json(accounts);
+});
+
+
+// Only authenticated users can see the latest transactions (latest 10);
+// admin sees all latest transactions.
+app.get('/transactions/latest', authMiddleware, async (c) => {
+  const userData = c.get('user') as { id: number; username: string; admin: boolean };
+  if (!userData) {
+    return c.json({ error: 'User not authenticated' }, 401);
+  }
+  let transactions;
+  if (userData.admin) {
+    transactions = await getTransactions();
+  } else {
+    transactions = (await getTransactions()).filter((tran) => tran.user_id === userData.id);
+  }
+  // Remove the sorting since 'created' doesn't exist
+  // transactions.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+  return c.json({ latest: transactions.slice(0, 10) });
+});
+
 app.get('/users', async (c) => {
   const users = await getUsers();
   return c.json(users);
@@ -125,19 +161,6 @@ app.get('/payment_methods/:slug', async (c) => {
     return c.json({ message: 'Payment method not found' }, 404);
   }
   return c.json(paymentMethod);
-});
-
-app.get('/accounts', async (c) => {
-  const accounts = await getAccounts();
-  return c.json(accounts);
-});
-app.get('/accounts/:slug', async (c) => {
-  const slug = c.req.param('slug');
-  const account = await getAccount(slug);
-  if (!account) {
-    return c.json({ message: 'Account not found' }, 404);
-  }
-  return c.json(account);
 });
 
 app.get('/budgets', async (c) => {
@@ -168,9 +191,14 @@ app.get('/categories/:slug', async (c) => {
 });
 
 app.get('/transactions', async (c) => {
-  const page = c.req.query('page') ?? '0';
-  const transactions = await getTransactions(parseInt(page));
-  return c.json(transactions);
+  const limit = Number(c.req.query('limit') || 10);
+  const offset = Number(c.req.query('offset') || 0);
+  const transactions = await getTransactions();
+  const paginated = transactions.slice(offset, offset + limit);
+  return c.json({
+    data: paginated,
+    pagination: { limit, offset, total: transactions.length },
+  });
 });
 
 app.get('/transactions/:slug', async (c) => {
@@ -214,7 +242,7 @@ app.delete('/transactions/:slug', async (c) => {
   const transaction = await getTransaction(slug);
   console.log(transaction);
   if (!transaction) {
-    return c.json({ error: 'Category not found' }, 404);
+    return c.json({ error: 'transaction not found' }, 404);
   }
   try {
     await deleteTransaction(transaction);
@@ -230,7 +258,7 @@ app.patch('/transactions/:slug', async (c) => {
   const slug = c.req.param('slug');
   const transaction = await getTransaction(slug);
   if (!transaction) {
-    return c.json({ error: 'Category not found' }, 404);
+    return c.json({ error: 'transaction not found' }, 404);
   }
   let transactionToUpdate: unknown;
   try {
@@ -257,7 +285,7 @@ app.patch('/transactions/:slug', async (c) => {
 serve(
   {
     fetch: app.fetch,
-    port: 3000,
+    port: Number(process.env.PORT || 3000),
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
