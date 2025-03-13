@@ -38,6 +38,8 @@ Eina taflan þar sem hægt er að gera allar CRUD aðgerðir á er transactions 
 	POST-a row í töflunni þar sem þarf að fylla í öll columns nema id (sem auto generate-ar)
  	PATCH-a row í töflunni þar sem þarf að fylla í öll columns nema id (sem auto generate-ar)
 
+ATH: Ef notað er POST aðferðina á aðra töflu en transactions til að gera row, þá þarf að fylla í slug parameterinn með "{nafn á table í eintölu}_{id}", annars virkar ekki GET aðferðin á það row.
+
 
 ## Test gögn
 
