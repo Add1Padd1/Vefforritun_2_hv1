@@ -243,7 +243,7 @@ app.patch('/transactions/:slug', async (c) => {
   const slug = c.req.param('slug');
   const transaction = await getTransaction(slug);
   if (!transaction) {
-    return c.json({ error: 'Category not found' }, 404);
+    return c.json({ error: 'Transaction not found' }, 404);
   }
   let transactionToUpdate: unknown;
   try {
